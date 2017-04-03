@@ -1,0 +1,2482 @@
+%!PS-Adobe-3.0
+%%Creator: gEDA gschem 1.8.1-20121123-13-g875406c
+%%CreationDate: Mon Apr  3 11:13:14 2017
+%%Title: /home/jlm-atelier/Bureau/GIT/dossier composants chariot-motorise/chariot-motorise schemas/chariot-motorise ver-1-0-0.sch
+%%Author: (null)
+%%BoundingBox: 0 0 595 841
+%%Orientation: Landscape
+%%Pages: 1
+%%EndComments
+%%BeginProlog
+% Prolog for gEDA, define all the functions needed for rendering
+% schematics on Postscript devices
+
+
+% Draw a line from the second coordinate to the first
+% x2 y2 x1 y1 width line -
+/line {
+    setlinewidth
+    % pop off first element and moveto
+    moveto
+    % pop off remaining elements and draw a line segment
+    lineto
+    % draw it
+    stroke
+} bind def
+
+
+% Draw a dot
+% x y r dot -
+/dot {
+    0 360 arc fill
+} bind def
+
+% Draw a dot-dashed line, a bunch of lined segments,
+% if the array element only has length two, draw a dot.
+% [ [x2 y2 x1 y1] [x4 y4 x3 y3] [x5 y5] ... ] width dashed -
+/width 0 def
+/dashed {
+    dup 2.0 div /width exch def
+    setlinewidth
+    % pop off each line segment and draw it as a dot or as a line
+    {
+	aload length 2 gt
+	{ moveto lineto stroke}
+	{ width dot } ifelse
+    } forall
+} bind def
+
+% Draw an arc segment
+% x y r ang1 ang2 width darc -
+/darc {
+    setlinewidth
+    arc stroke
+} bind def
+
+% Draw a series of arc segment bits, if the array element only has a single
+% element in it, draw a dot.
+% [ [sa1 ea1] [sa2 ea2] ... ] x y r width dashedarc -
+/x 0 def
+/y 0 def
+/dashedarc {
+    dup /width exch def
+    setlinewidth
+    /r exch def  
+    /y exch def
+    /x exch def
+    { aload length 1 gt
+	{
+	    % this element had two angles in it
+	    % extract start and stop angles
+	    x y r   % drop x y and r onto stack
+		    % at this point we have: sa ea x y r
+		    % we need                      x y r sa ea
+		    % so..
+	    5 -2 roll
+	    % and add it to the current path, and draw it
+	    arc stroke
+	} {
+	    % this element only had one angle in it, place a
+	    % filled dot at the appropriate place
+	    % compute center point of the arc using the angle
+	    % that is on the top of the stack
+	    dup   		% angle angle
+	    cos r mul x add 	% angle x
+	    exch		% x angle
+	    sin r mul y add	% x y
+	    width		% x y width/2
+	    dot			% draw the dot
+	} ifelse
+    } forall
+
+    % Now draw it
+    stroke
+} bind def
+
+% Draw a box
+% width height x y linethickness box -
+/box {
+    setlinewidth
+    moveto
+    exch dup 0 rlineto	 % w h, h w w 0      -- Draw bottom line
+    exch 0 exch rlineto	 % h w, w h 0, w 0 h -- Draw right line 
+    neg 0 rlineto	 % w, -w 0           -- Draw Top line
+    closepath		 % finish and draw it
+    stroke
+} bind def			     
+
+% Draw a filled box
+% width height x y fbox -
+/fbox {
+    moveto
+    exch dup 0 rlineto	
+    exch 0 exch rlineto	
+    neg 0 rlineto		
+    closepath			
+    fill			
+} bind def
+
+% Font reincoding utilities
+
+% ISOLatin1Encoding, extended with remaining uncoded glyphs
+/ISOLatin1Extended [
+    /.notdef /Lslash /lslash /OE /oe /Scaron /scaron /Zcaron /zcaron
+    /Ydieresis /trademark /bullet /dagger /daggerdbl /ellipsis /emdash
+    /endash /fi /fl /florin /fraction /guilsinglleft /guilsinglright
+    /perthousand /quotedblbase /quotedblleft /quotedblright
+    /quotesinglbase /quotesingle /.notdef /.notdef /.notdef /space
+    /exclam /quotedbl /numbersign /dollar /percent /ampersand
+    /quoteright /parenleft /parenright /asterisk /plus /comma /minus
+    /period /slash /zero /one /two /three /four /five /six /seven /eight
+    /nine /colon /semicolon /less /equal /greater /question /at /A /B /C
+    /D /E /F /G /H /I /J /K /L /M /N /O /P /Q /R /S /T /U /V /W /X /Y /Z
+    /bracketleft /backslash /bracketright /asciicircum /underscore
+    /quoteleft /a /b /c /d /e /f /g /h /i /j /k /l /m /n /o /p /q /r /s
+    /t /u /v /w /x /y /z /braceleft /bar /braceright /asciitilde
+    /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+    /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+    /.notdef /.notdef /.notdef /dotlessi /grave /acute /circumflex
+    /tilde /macron /breve /dotaccent /dieresis /.notdef /ring /cedilla
+    /.notdef /hungarumlaut /ogonek /caron /space /exclamdown /cent
+    /sterling /currency /yen /brokenbar /section /dieresis /copyright
+    /ordfeminine /guillemotleft /logicalnot /hyphen /registered /macron
+    /degree /plusminus /twosuperior /threesuperior /acute /mu /paragraph
+    /periodcentered /cedilla /onesuperior /ordmasculine /guillemotright
+    /onequarter /onehalf /threequarters /questiondown /Agrave /Aacute
+    /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla /Egrave /Eacute
+    /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex /Idieresis /Eth
+    /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply
+    /Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn
+    /germandbls /agrave /aacute /acircumflex /atilde /adieresis /aring
+    /ae /ccedilla /egrave /eacute /ecircumflex /edieresis /igrave
+    /iacute /icircumflex /idieresis /eth /ntilde /ograve /oacute
+    /ocircumflex /otilde /odieresis /divide /oslash /ugrave /uacute
+    /ucircumflex /udieresis /yacute /thorn /ydieresis
+] def
+
+% `new-font-name' `encoding-vector' `old-font-name' RE -
+/RE {
+    findfont
+    dup maxlength dict begin {
+        1 index /FID ne { def } { pop pop } ifelse
+    } forall
+    /Encoding exch def
+    dup /FontName exch def
+    currentdict end definefont pop
+} bind def
+
+% Text handling functions, select the font and scale it, then we need
+% only to apply the appropriate transformations to get the text
+% justified into the right spots.  The bad thing here is that we don't
+% do any kerning, so the output may look a bit strange.
+
+% compute the height of one character and return lly and ury
+% (char) charheight lly ury
+/charheight {
+    gsave			% push graphics state
+	newpath			% clear current path
+	0 0 moveto		% Set current point
+	false charpath		% get path
+	flattenpath		% flatten path
+	pathbbox		% stack = llx lly urx ury
+	exch pop		% stack = llx lly ury
+	3 -1 roll pop		% stack = lly ury
+    grestore			% pop graphics state
+} bind def
+
+% compute the height of a string, one character at a time
+% (string) stringheight lly ury
+/lly 0.0 def
+/ury 0.0 def
+
+/stringheight {
+    /lly 0.0 def			% initial value of heightmin
+    /ury 0.0 def			% initial value of heightmax
+    {				% work through string
+	( ) dup 0 4 -1 roll put	% create one character string
+	charheight		% measure it's height
+	dup ury gt {		% if ury gt heightmax
+	    /ury exch def	% update with new value
+	} {
+	    pop			% else discard ury
+	} ifelse
+	dup lly lt {		% if lly lt heightmin
+	    /lly exch def	% update with new value
+	} {
+	    pop			% else discard lly
+	} ifelse
+    } forall
+    lly ury			% Return the results
+} bind def
+
+% calculate the string width taking into account the escapes.
+/mystrx 0.0 def
+/mystry 0.0 def
+/mystresc false def
+
+/mystringwidth {
+    /mystrx 0.0 def
+    /mystry 0.0 def
+    /mystresc false def
+    {				% work through string
+	% did we process the escape character last?
+	mystresc {
+	    % last character was escape
+	    % handle the escape
+	    % is it an _ = 95?
+	    dup 95 eq {
+		pop  % we don't need the character anymore
+		% toggle drawing overbars
+		0.0 0.0 % make it like it never happened...
+	    } {
+		% otherwise measure the character 
+		(\\ ) dup 1 4 -1 roll put % count a \ and the character
+		stringwidth
+	    } ifelse
+	    % and reset the flag
+	    /mystresc false def
+	} {
+	    % last character was not escape
+	    % is this escape
+	    dup 92 eq {
+		% yes, escape character, set flag
+		/mystresc true def
+		pop % drop character
+		0.0 0.0 % make like this character has no width and height
+	    } {
+		( ) dup 0 4 -1 roll put	% create one character string
+		stringwidth		% measure it's height/width
+	    } ifelse
+	} ifelse
+	% accumulate x and y movements
+	mystry add /mystry exch def
+	mystrx add /mystrx exch def
+    } forall
+    mystrx mystry % drop results on stack
+} bind def
+
+% Render a string with overbars
+%
+/escaped false def
+/drawoverbar false def
+/fontsize 0.0 def
+
+%string1 string2 append -
+/append {
+    2 copy length exch length add % find new length
+    string dup % string1 string2 string string
+    4 2 roll % string string string1 string2
+    2 index 0 3 index
+    % string string string1 string2 string 0 string1
+    putinterval % string string string1 string2
+    exch length exch putinterval
+} bind def
+
+% If drawoverbar is set, draw a line of the same length as the given string
+% string overbarshowline -
+/overbarshowline {
+    % print overbar if necessary
+    stringwidth pop 0
+    drawoverbar {
+        rlineto
+        gsave stroke grestore
+    } {
+        rmoveto
+    } ifelse
+} bind def
+
+% Draws overbars for the given string, then shows the string itself
+% string overbarshow
+/overbarshow {
+    /overbarshowacc () def
+    /overbarshowtxt () def
+
+    gsave
+    fontsize 10.0 div setlinewidth
+    0 fontsize rmoveto  % move to (0,overbarheight)
+
+    {				% work through string
+	escaped {
+	    % the last character was the escape
+	    % handle the escape
+	    % is it an _ = 95?
+	    dup 95 eq {
+		pop  % we don't need the character anymore
+                overbarshowacc overbarshowline
+                % toggle drawing overbars
+		/drawoverbar drawoverbar not def
+
+                % Append the contents off the accumulator to the text
+                % string we're eventually going to show
+                /overbarshowtxt overbarshowtxt overbarshowacc append def
+
+                % clear accumulator
+                /overbarshowacc () def
+	    } {
+                % add to accumulator
+                (\\ ) dup 1 4 -1 roll put
+                overbarshowacc exch append
+                /overbarshowacc exch def
+	    } ifelse
+	    % and reset the flag
+	    /escaped false def
+	} {
+	    % check for escape character \ = 92
+	    dup 92 eq {
+		% yes, escape character, set flag
+		/escaped true def
+		pop % drop character
+	    } {
+                % add to accumulator
+                ( ) dup 0 4 -1 roll put
+                overbarshowacc exch append
+                /overbarshowacc exch def
+	    } ifelse
+	} ifelse
+    } forall
+    % Catch any leftovers
+    overbarshowacc overbarshowline
+    overbarshowtxt overbarshowacc append
+
+    grestore
+    show
+} bind def
+
+% 
+% hcenter rjustify vcenter vjustify spacing [(line1) (line2) ... ] rot x y size text -
+/stringw 0.0 def
+/stringh 0.0 def
+/spacing 0.0 def
+/strings [ ] def
+/stringtxt ( ) def
+/stringcount 0 def
+/rot 0.0 def
+
+/text {
+    gsave	        % save state for later
+    /drawoverbar false def      % start by not drawing overbars
+
+    dup /fontsize exch def  % save font size for corrections later
+    % do font selection 
+    /gEDAFont findfont
+    exch scalefont
+    setfont
+
+    % set up coordinates
+    translate           % move origin to given point
+    rotate		% rotate so that text is drawn
+    0 0 moveto
+    dup length /stringcount exch def			% Get number of strings
+    /strings exch def     				% save strings
+    /spacing exch def
+    % do we have more than 1 string to render?
+    stringcount 1 eq {
+	/stringtxt strings aload pop def		% get the string 
+	/stringw stringtxt mystringwidth pop neg def	% get the -width
+	/stringh stringtxt stringheight exch pop neg def% get the -height
+
+	% First do vertical calculations
+	% hcenter rjustify vcenter vjustify 
+	% vertical justification
+	{ 0 stringh rmoveto } if 
+	% vertical center
+	{ 0 stringh 0.3571425 mul rmoveto } if  % not 0.5, so that
+						% it looks nicer
+	% Then do horizontal calculations
+	% right justify
+	{ stringw 0 rmoveto } if
+	% center
+	{ stringw 2.0 div 0 rmoveto } if
+	% Draw the text
+	stringtxt overbarshow
+    } {
+	% More than one line, compute bounding box for the text
+
+	% vertical height, don't use the actual hieght of the characters
+	% assume that the user wants to make the baselines line up with two
+	% text boxes placed side by side
+	/stringh stringcount spacing mul neg def
+	% Now figure out horizontal size, this amounts to keeping track
+	% of the longest string
+	/stringw 0.0 def
+	strings {
+	    mystringwidth pop
+	    dup stringw gt {
+		/stringw exch def
+	    } {
+		pop
+	    } ifelse
+	} forall
+	/stringw stringw neg def 	% get the -width
+	
+	% First do vertical calculations
+	% hcenter rjustify vcenter vjustify 
+	% vertical justification
+	{ 0 stringh fontsize add rmoveto } if 
+	% vertical center
+	{ 0 stringh 0.5 mul rmoveto } if 
+	% Then do horizontal calculations
+	% right justify
+	{ stringw 0 rmoveto } if
+	% center
+	{ stringw 2.0 div 0 rmoveto } if
+	% now move up to the first line and begin rendering
+	0 stringcount 1 sub spacing mul rmoveto
+	strings {
+	    gsave		% Save starting point
+	    overbarshow		% render the text
+	    grestore
+	    0 spacing neg rmoveto
+	} forall
+    } ifelse
+    grestore 	% Restore old state
+} bind def
+
+
+%%EndProlog
+%%Page: 1 1
+%%BeginResource: encoding UTFencoding
+/UTFencoding [
+/.notdef /controlSTX /controlSOT /controlETX /controlEOT /controlENQ 
+/controlACK /controlBEL /controlBS /controlHT /controlLF /controlVT 
+/controlFF /controlCR /controlSO /controlSI /controlDLE /controlDC1 
+/controlDC2 /controlDC3 /controlDC4 /controlNAK /controlSYN /controlETB 
+/controlCAN /controlEM /controlSUB /controlESC /controlFS /controlGS 
+/controlRS /controlUS /space /exclam /quotedbl /numbersign /dollar 
+/percent /ampersand /quotesingle /parenleft /parenright /asterisk 
+/plus /comma /hyphen /period /slash /zero /one /two /three /four 
+/five /six /seven /eight /nine /colon /semicolon /less /equal 
+/greater /question /at /A /B /C /D /E /F /G /H /I /J /K /L /M 
+/N /O /P /Q /R /S /T /U /V /W /X /Y /Z /bracketleft /backslash 
+/bracketright /asciicircum /underscore /grave /a /b /c /d /e 
+/f /g /h /i /j /k /l /m /n /o /p /q /r /s /t /u /v /w /x /y /z 
+/braceleft /bar /braceright /asciitilde /controlDEL /eacute /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+] def
+%%EndResource
+/gEDAFont UTFencoding /Helvetica RE
+2 setlinecap
+0.072000 0.072000 scale
+7573 531 translate 90 rotate
+0.625134 0.625134 scale
+-17800 -2700 translate
+gsave
+17800 2700 34800 2700 10 line
+34800 2700 34800 13700 10 line
+34800 13700 17800 13700 10 line
+17800 13700 17800 2700 10 line
+30700 3300 30700 2700 10 line
+gsave
+false false false false 161.777776 [(FILE:) ] 0 27300 3100 144.444443 text
+grestore
+gsave
+false false false false 161.777776 [(REVISION:) ] 0 30800 3100 144.444443 text
+grestore
+gsave
+false false false false 161.777776 [(DRAWN BY: ) ] 0 30800 2800 144.444443 text
+grestore
+gsave
+false false false false 161.777776 [(PAGE) ] 0 27300 2800 144.444443 text
+grestore
+gsave
+false false false false 161.777776 [(OF) ] 0 29000 2800 144.444443 text
+grestore
+gsave
+false false false false 161.777776 [(TITLE) ] 0 27300 3400 144.444443 text
+grestore
+27200 2700 34800 2700 10 line
+34800 2700 34800 4100 10 line
+34800 4100 27200 4100 10 line
+27200 4100 27200 2700 10 line
+27200 3300 34800 3300 10 line
+grestore
+gsave
+25150 11200 25450 11200 10 line
+25150 11200 25300 11450 10 line
+25300 11450 25450 11200 10 line
+25150 11450 25450 11450 10 line
+25300 10900 25300 11100 10 line
+25300 11800 25300 11600 10 line
+25300 11600 25300 11450 10 line
+25300 11200 25300 11100 10 line
+grestore
+gsave
+false true false true 202.222224 [(D) ] 0 25500 11100 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(1N5819) ] 0 24900 11900 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(avril 2017) ] 0 28600 3000 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(Chariot motoris€) ] 0 29800 3600 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(rev 1.0.0) ] 0 32500 2900 180.555557 text
+grestore
+gsave
+24600 10900 24600 11100 10 line
+24600 11800 24600 11600 10 line
+24400 11300 24800 11300 10 line
+24400 11400 24800 11400 10 line
+24600 11600 24600 11400 10 line
+24600 11300 24600 11100 10 line
+newpath
+24600 10900
+25
+0 360 arc
+fill
+newpath
+24600 10900
+25
+0 360 arc
+fill
+newpath
+24600 11800
+25
+0 360 arc
+fill
+newpath
+24600 11800
+25
+0 360 arc
+fill
+grestore
+gsave
+false false false false 202.222224 [(C) ] 0 24700 11100 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(100nf) ] 0 24700 11500 180.555557 text
+grestore
+gsave
+22900 6100 23100 6100 10 line
+gsave
+false false false false 161.777776 [(2) ] 90 23050 6150 144.444443 text
+grestore
+23900 6100 23700 6100 10 line
+gsave
+false false false false 161.777776 [(1) ] 90 23850 6150 144.444443 text
+grestore
+23200 6100 50 0 360 10 darc
+23600 6100 50 0 360 10 darc
+23100 6000 23700 6000 10 line
+23700 6000 23700 6200 10 line
+23700 6200 23100 6200 10 line
+23100 6200 23100 6000 10 line
+newpath
+22900 6100
+25
+0 360 arc
+fill
+newpath
+22900 6100
+25
+0 360 arc
+fill
+grestore
+gsave
+30000 9200 30300 9200 10 line
+gsave
+false false false false 202.222224 [(nc) ] 0 30355 9195 180.555557 text
+grestore
+gsave
+false true false false 202.222224 [(1) ] 0 30305 9245 180.555557 text
+grestore
+30000 9000 30300 9000 10 line
+gsave
+false false false false 202.222224 [(ioref) ] 0 30355 8995 180.555557 text
+grestore
+gsave
+false true false false 202.222224 [(2) ] 0 30305 9045 180.555557 text
+grestore
+30000 8800 30300 8800 10 line
+gsave
+false false false false 202.222224 [(reset) ] 0 30355 8795 180.555557 text
+grestore
+gsave
+false true false false 202.222224 [(3) ] 0 30305 8845 180.555557 text
+grestore
+30000 8600 30300 8600 10 line
+gsave
+false false false false 202.222224 [(3v3) ] 0 30355 8595 180.555557 text
+grestore
+gsave
+false true false false 202.222224 [(4) ] 0 30305 8645 180.555557 text
+grestore
+30000 8400 30300 8400 10 line
+gsave
+false false false false 202.222224 [(5v) ] 0 30355 8395 180.555557 text
+grestore
+gsave
+false true false false 202.222224 [(5) ] 0 30305 8445 180.555557 text
+grestore
+30000 8200 30300 8200 10 line
+gsave
+false false false false 202.222224 [(gnd) ] 0 30355 8195 180.555557 text
+grestore
+gsave
+false true false false 202.222224 [(6) ] 0 30305 8245 180.555557 text
+grestore
+30000 8000 30300 8000 10 line
+gsave
+false false false false 202.222224 [(gnd) ] 0 30355 7995 180.555557 text
+grestore
+gsave
+false true false false 202.222224 [(7) ] 0 30305 8045 180.555557 text
+grestore
+30000 7800 30300 7800 10 line
+gsave
+false false false false 202.222224 [(vin) ] 0 30355 7795 180.555557 text
+grestore
+gsave
+false true false false 202.222224 [(8) ] 0 30305 7845 180.555557 text
+grestore
+30000 7600 30300 7600 10 line
+gsave
+false false false false 202.222224 [(A0) ] 0 30355 7595 180.555557 text
+grestore
+gsave
+false true false false 202.222224 [(9) ] 0 30305 7645 180.555557 text
+grestore
+30000 7400 30300 7400 10 line
+gsave
+false false false false 202.222224 [(A1) ] 0 30355 7395 180.555557 text
+grestore
+gsave
+false true false false 202.222224 [(10) ] 0 30305 7445 180.555557 text
+grestore
+30000 7200 30300 7200 10 line
+gsave
+false false false false 202.222224 [(A2) ] 0 30355 7195 180.555557 text
+grestore
+gsave
+false true false false 202.222224 [(11) ] 0 30305 7245 180.555557 text
+grestore
+30000 7000 30300 7000 10 line
+gsave
+false false false false 202.222224 [(A3) ] 0 30355 6995 180.555557 text
+grestore
+gsave
+false true false false 202.222224 [(12) ] 0 30305 7045 180.555557 text
+grestore
+30000 6800 30300 6800 10 line
+gsave
+false false false false 202.222224 [(A4) ] 0 30355 6795 180.555557 text
+grestore
+gsave
+false true false false 202.222224 [(13) ] 0 30305 6845 180.555557 text
+grestore
+30000 6600 30300 6600 10 line
+gsave
+false false false false 202.222224 [(A5) ] 0 30355 6595 180.555557 text
+grestore
+gsave
+false true false false 202.222224 [(14) ] 0 30305 6645 180.555557 text
+grestore
+30000 6400 30300 6400 10 line
+gsave
+false false false false 202.222224 [(D0 Rx) ] 0 30355 6395 180.555557 text
+grestore
+gsave
+false true false false 202.222224 [(15) ] 0 30305 6445 180.555557 text
+grestore
+30000 6200 30300 6200 10 line
+gsave
+false false false false 202.222224 [(D1 Tx) ] 0 30355 6195 180.555557 text
+grestore
+gsave
+false true false false 202.222224 [(16) ] 0 30305 6245 180.555557 text
+grestore
+30000 6000 30300 6000 10 line
+gsave
+false false false false 202.222224 [(D2) ] 0 30355 5995 180.555557 text
+grestore
+gsave
+false true false false 202.222224 [(17) ] 0 30305 6045 180.555557 text
+grestore
+30000 5800 30300 5800 10 line
+gsave
+false false false false 202.222224 [(D3) ] 0 30355 5795 180.555557 text
+grestore
+gsave
+false true false false 202.222224 [(18) ] 0 30305 5845 180.555557 text
+grestore
+30000 5600 30300 5600 10 line
+gsave
+false false false false 202.222224 [(D4) ] 0 30355 5595 180.555557 text
+grestore
+gsave
+false true false false 202.222224 [(19) ] 0 30305 5645 180.555557 text
+grestore
+32000 9200 31700 9200 10 line
+gsave
+false true false false 202.222224 [(gnd icsp) ] 0 31645 9195 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(38) ] 0 31695 9245 180.555557 text
+grestore
+32000 9000 31700 9000 10 line
+gsave
+false true false false 202.222224 [(reset icsp) ] 0 31645 8995 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(37) ] 0 31695 9045 180.555557 text
+grestore
+32000 8800 31700 8800 10 line
+gsave
+false true false false 202.222224 [(D11 icsp) ] 0 31645 8795 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(36) ] 0 31695 8845 180.555557 text
+grestore
+32000 8600 31700 8600 10 line
+gsave
+false true false false 202.222224 [(D13 icsp) ] 0 31645 8595 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(35) ] 0 31695 8645 180.555557 text
+grestore
+32000 8400 31700 8400 10 line
+gsave
+false true false false 202.222224 [(5v icsp) ] 0 31645 8395 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(34) ] 0 31695 8445 180.555557 text
+grestore
+32000 8200 31700 8200 10 line
+gsave
+false true false false 202.222224 [(D12 icsp) ] 0 31645 8195 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(33) ] 0 31695 8245 180.555557 text
+grestore
+32000 8000 31700 8000 10 line
+gsave
+false true false false 202.222224 [(A5 scl) ] 0 31645 7995 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(32) ] 0 31695 8045 180.555557 text
+grestore
+32000 7800 31700 7800 10 line
+gsave
+false true false false 202.222224 [(A4 sda) ] 0 31645 7795 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(31) ] 0 31695 7845 180.555557 text
+grestore
+32000 7600 31700 7600 10 line
+gsave
+false true false false 202.222224 [(aref) ] 0 31645 7595 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(30) ] 0 31695 7645 180.555557 text
+grestore
+32000 7400 31700 7400 10 line
+gsave
+false true false false 202.222224 [(gnd) ] 0 31645 7395 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(29) ] 0 31695 7445 180.555557 text
+grestore
+32000 7200 31700 7200 10 line
+gsave
+false true false false 202.222224 [(D13) ] 0 31645 7195 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(28) ] 0 31695 7245 180.555557 text
+grestore
+32000 7000 31700 7000 10 line
+gsave
+false true false false 202.222224 [(D12) ] 0 31645 6995 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(27) ] 0 31695 7045 180.555557 text
+grestore
+32000 6800 31700 6800 10 line
+gsave
+false true false false 202.222224 [(D11) ] 0 31645 6795 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(26) ] 0 31695 6845 180.555557 text
+grestore
+32000 6600 31700 6600 10 line
+gsave
+false true false false 202.222224 [(D10) ] 0 31645 6595 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(25) ] 0 31695 6645 180.555557 text
+grestore
+32000 6400 31700 6400 10 line
+gsave
+false true false false 202.222224 [(D9) ] 0 31645 6395 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(24) ] 0 31695 6445 180.555557 text
+grestore
+32000 6200 31700 6200 10 line
+gsave
+false true false false 202.222224 [(D8) ] 0 31645 6195 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(23) ] 0 31695 6245 180.555557 text
+grestore
+32000 6000 31700 6000 10 line
+gsave
+false true false false 202.222224 [(D7) ] 0 31645 5995 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(22) ] 0 31695 6045 180.555557 text
+grestore
+32000 5800 31700 5800 10 line
+gsave
+false true false false 202.222224 [(D6) ] 0 31645 5795 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(21) ] 0 31695 5845 180.555557 text
+grestore
+32000 5600 31700 5600 10 line
+gsave
+false true false false 202.222224 [(D5) ] 0 31645 5595 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(20) ] 0 31695 5645 180.555557 text
+grestore
+30300 5500 31700 5500 10 line
+31700 5500 31700 9700 10 line
+31700 9700 30300 9700 10 line
+30300 9700 30300 5500 10 line
+gsave
+false false false false 202.222224 [(Arduino UNO R3) ] 0 30300 9500 180.555557 text
+grestore
+60 60 29970 9170 fbox
+60 60 29970 8970 fbox
+60 60 29970 8770 fbox
+60 60 29970 8570 fbox
+60 60 29970 7970 fbox
+60 60 29970 7570 fbox
+60 60 29970 7370 fbox
+60 60 29970 6970 fbox
+60 60 29970 6770 fbox
+60 60 29970 6570 fbox
+60 60 29970 6370 fbox
+60 60 29970 6170 fbox
+60 60 29970 5970 fbox
+60 60 29970 5570 fbox
+60 60 31970 9170 fbox
+60 60 31970 8970 fbox
+60 60 31970 8770 fbox
+60 60 31970 8570 fbox
+60 60 31970 8370 fbox
+60 60 31970 8170 fbox
+60 60 31970 7970 fbox
+60 60 31970 7770 fbox
+60 60 31970 7570 fbox
+60 60 31970 7370 fbox
+60 60 31970 7170 fbox
+60 60 31970 6970 fbox
+60 60 31970 6770 fbox
+60 60 31970 6170 fbox
+60 60 31970 5970 fbox
+grestore
+gsave
+19000 8600 19000 8400 10 line
+gsave
+false true false false 121.333336 [(1) ] 0 19100 8450 108.333336 text
+grestore
+19000 8000 19000 7800 10 line
+gsave
+false true false false 121.333336 [(3) ] 0 19100 7850 108.333336 text
+grestore
+19400 8200 19200 8200 10 line
+gsave
+false true false false 121.333336 [(2) ] 0 19300 8250 108.333336 text
+grestore
+18800 8000 19200 8000 10 line
+19200 8000 19200 8400 10 line
+19200 8400 18800 8400 10 line
+18800 8400 18800 8000 10 line
+19100 8300 18900 8100 10 line
+18900 8300 19100 8100 10 line
+grestore
+gsave
+false true false false 202.222224 [(Power) ] 0 18700 8200 180.555557 text
+grestore
+gsave
+19000 7400 19000 7200 10 line
+gsave
+false true false false 121.333336 [(1) ] 0 19100 7250 108.333336 text
+grestore
+19000 6800 19000 6600 10 line
+gsave
+false true false false 121.333336 [(3) ] 0 19100 6650 108.333336 text
+grestore
+19400 7000 19200 7000 10 line
+gsave
+false true false false 121.333336 [(2) ] 0 19300 7050 108.333336 text
+grestore
+18800 6800 19200 6800 10 line
+19200 6800 19200 7200 10 line
+19200 7200 18800 7200 10 line
+18800 7200 18800 6800 10 line
+19100 7100 18900 6900 10 line
+18900 7100 19100 6900 10 line
+grestore
+gsave
+false true false false 202.222224 [(Throttle) ] 0 18700 7000 180.555557 text
+grestore
+gsave
+25100 10800 25100 10600 10 line
+gsave
+false false false false 121.333336 [(2) ] 0 25200 10650 108.333336 text
+grestore
+25100 10000 25100 9800 10 line
+gsave
+false false false false 121.333336 [(3) ] 0 25200 9850 108.333336 text
+grestore
+25000 10301 316 0 360 10 darc
+24900 10500 24900 10100 10 line
+24500 10300 24700 10300 10 line
+gsave
+false false false false 121.333336 [(1) ] 0 24600 10350 108.333336 text
+grestore
+24900 10300 24684 10300 10 line
+25100 10600 25100 10440 10 line
+24940 10500 24940 10380 10 line
+24940 10100 24940 10220 10 line
+24940 10240 24940 10360 10 line
+24940 10440 25100 10440 10 line
+24940 10160 25100 10160 10 line
+25100 10000 25100 10160 10 line
+25100 10160 25100 10300 10 line
+24940 10300 24980 10320 10 line
+24980 10320 24980 10280 10 line
+24980 10280 24940 10300 10 line
+24980 10300 25100 10300 10 line
+25100 10500 25180 10500 10 line
+25160 10330 25220 10330 10 line
+25180 10500 25190 10500 10 line
+25190 10380 25190 10500 10 line
+25140 10310 25160 10330 10 line
+25220 10330 25240 10350 10 line
+25160 10270 25190 10330 10 line
+25220 10270 25190 10330 10 line
+25160 10270 25220 10270 10 line
+25190 10330 25190 10380 10 line
+25100 10100 25190 10100 10 line
+25190 10100 25190 10270 10 line
+25100 10500 5 0 360 10 darc
+25100 10500 5 dot
+25100 10160 5 0 360 10 darc
+25100 10160 5 dot
+25100 10100 5 0 360 10 darc
+25100 10100 5 dot
+grestore
+gsave
+false false false false 202.222224 [(Q) ] 0 24600 9800 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(IRF640) ] 0 24800 9400 180.555557 text
+grestore
+gsave
+28900 11800 28500 11800 10 line
+28900 11800 28700 11500 10 line
+28700 11500 28500 11800 10 line
+28900 11500 28500 11500 10 line
+28700 12100 28700 11900 10 line
+28700 11200 28700 11400 10 line
+28700 11400 28700 11500 10 line
+28700 11800 28700 11900 10 line
+grestore
+gsave
+false false false false 202.222224 [(1N4007) ] 270 29000 11900 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(D) ] 0 28500 11900 180.555557 text
+grestore
+gsave
+20800 3600 20800 4400 10 line
+20800 4400 21400 4000 10 line
+21400 4000 20800 3600 10 line
+20800 4200 20600 4200 10 line
+gsave
+false false false false 161.777776 [(3) ] 0 20650 4225 144.444443 text
+grestore
+20800 3800 20600 3800 10 line
+gsave
+false false false false 161.777776 [(2) ] 0 20650 3825 144.444443 text
+grestore
+21400 4000 21600 4000 10 line
+gsave
+false false false false 161.777776 [(1) ] 0 21475 4025 144.444443 text
+grestore
+21100 3800 21100 3600 10 line
+gsave
+false false false false 161.777776 [(4) ] 0 21125 3650 144.444443 text
+grestore
+21100 4200 21100 4400 10 line
+gsave
+false false false false 161.777776 [(8) ] 0 21125 4250 144.444443 text
+grestore
+20850 4200 20950 4200 10 line
+20900 4250 20900 4150 10 line
+20850 3800 20950 3800 10 line
+gsave
+false false false false 161.777776 [(LM358) ] 0 20825 3950 144.444443 text
+grestore
+newpath
+20600 4200
+25
+0 360 arc
+fill
+newpath
+21600 4000
+25
+0 360 arc
+fill
+grestore
+gsave
+false false false false 202.222224 [(U) ] 0 21400 4200 180.555557 text
+grestore
+18400 9500 19400 9500 10 line
+19400 9500 19400 10500 10 line
+19400 10500 18400 10500 10 line
+18400 10500 18400 9500 10 line
+18900 10000 500 0 360 10 darc
+18900 10000 200 0 360 10 darc
+18400 10000 18700 10000 20 line
+18900 10200 18900 10500 20 line
+19100 10000 19400 10000 20 line
+18900 9800 18900 9500 20 line
+gsave
+24400 6100 24400 6250 10 line
+24400 7000 24400 6850 10 line
+24300 6250 24500 6250 10 line
+24500 6250 24500 6850 10 line
+24500 6850 24300 6850 10 line
+24300 6850 24300 6250 10 line
+newpath
+24400 7000
+25
+0 360 arc
+fill
+newpath
+24400 7000
+25
+0 360 arc
+fill
+grestore
+gsave
+false false false false 202.222224 [(10k) ] 0 24500 6300 180.555557 text
+grestore
+gsave
+false true false true 202.222224 [(R) ] 0 24700 6800 180.555557 text
+grestore
+gsave
+24000 5400 24000 5600 10 line
+24100 5400 23900 5400 10 line
+24045 5350 23955 5350 10 line
+24020 5310 23980 5310 10 line
+grestore
+gsave
+20100 3100 20100 3300 10 line
+20200 3100 20000 3100 10 line
+20145 3050 20055 3050 10 line
+20120 3010 20080 3010 10 line
+newpath
+20100 3300
+25
+0 360 arc
+fill
+newpath
+20100 3300
+25
+0 360 arc
+fill
+grestore
+21500 7000 21200 7000 10 line
+gsave
+false true false false 161.777776 [(3) ] 0 21405 7045 144.444443 text
+grestore
+21500 6600 21200 6600 10 line
+gsave
+false true false false 161.777776 [(2) ] 0 21405 6645 144.444443 text
+grestore
+21500 9000 21200 9000 10 line
+gsave
+false true false false 161.777776 [(8) ] 0 21405 9045 144.444443 text
+grestore
+21500 6400 21900 6400 10 line
+21500 6800 21900 6800 10 line
+21500 6000 21900 6000 10 line
+21900 6000 21900 12000 10 line
+21900 12000 21500 12000 10 line
+21500 12000 21500 6000 10 line
+21500 7200 21900 7200 10 line
+21500 7600 21900 7600 10 line
+21500 7800 21200 7800 10 line
+gsave
+false true false false 161.777776 [(5) ] 0 21405 7845 144.444443 text
+grestore
+21500 7400 21200 7400 10 line
+gsave
+false true false false 161.777776 [(4) ] 0 21405 7445 144.444443 text
+grestore
+21500 8200 21200 8200 10 line
+gsave
+false true false false 161.777776 [(6) ] 0 21405 8245 144.444443 text
+grestore
+21500 8000 21900 8000 10 line
+21500 8600 21200 8600 10 line
+gsave
+false true false false 161.777776 [(7) ] 0 21405 8645 144.444443 text
+grestore
+21500 8400 21900 8400 10 line
+21500 8800 21900 8800 10 line
+21500 6200 21200 6200 10 line
+gsave
+false true false false 161.777776 [(1) ] 0 21405 6245 144.444443 text
+grestore
+21500 9400 21200 9400 10 line
+gsave
+false true false false 161.777776 [(9) ] 0 21405 9445 144.444443 text
+grestore
+21500 9200 21900 9200 10 line
+21500 9800 21200 9800 10 line
+gsave
+false true false false 161.777776 [(10) ] 0 21405 9845 144.444443 text
+grestore
+21500 9600 21900 9600 10 line
+gsave
+true false true false 141.555552 [(A2) ] 0 21700 7000 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [(gnd) ] 0 21700 6600 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [(5v) ] 0 21700 6200 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [(5v) ] 0 21700 7400 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [(gnd) ] 0 21700 7800 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [(A3) ] 0 21700 8200 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [(5v) ] 0 21700 8600 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [(gnd) ] 0 21700 9000 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [(D3) ] 0 21700 9400 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [(12v) ] 0 21700 9800 126.388885 text
+grestore
+21500 11000 21200 11000 10 line
+gsave
+false true false false 161.777776 [(13) ] 0 21405 11045 144.444443 text
+grestore
+21500 10600 21200 10600 10 line
+gsave
+false true false false 161.777776 [(12) ] 0 21405 10645 144.444443 text
+grestore
+21500 10400 21900 10400 10 line
+21500 10800 21900 10800 10 line
+21500 11200 21900 11200 10 line
+21500 11600 21900 11600 10 line
+21500 11800 21200 11800 10 line
+gsave
+false true false false 161.777776 [(15) ] 0 21405 11845 144.444443 text
+grestore
+21500 11400 21200 11400 10 line
+gsave
+false true false false 161.777776 [(14) ] 0 21405 11445 144.444443 text
+grestore
+21500 12000 21900 12000 10 line
+21500 10200 21200 10200 10 line
+gsave
+false true false false 161.777776 [(11) ] 0 21405 10245 144.444443 text
+grestore
+gsave
+true false true false 141.555552 [(D6) ] 0 21700 11000 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [(gnd) ] 0 21700 10600 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [(vent) ] 0 21700 10200 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [(D9) ] 0 21700 11400 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [(D10) ] 0 21700 11800 126.388885 text
+grestore
+21500 10000 21900 10000 10 line
+21900 7000 22200 7000 10 line
+gsave
+false false false false 161.777776 [(3) ] 0 21995 7045 144.444443 text
+grestore
+21900 6600 22200 6600 10 line
+gsave
+false false false false 161.777776 [(2) ] 0 21995 6645 144.444443 text
+grestore
+21900 9000 22200 9000 10 line
+gsave
+false false false false 161.777776 [(8) ] 0 21995 9045 144.444443 text
+grestore
+21900 7800 22200 7800 10 line
+gsave
+false false false false 161.777776 [(5) ] 0 21995 7845 144.444443 text
+grestore
+21900 7400 22200 7400 10 line
+gsave
+false false false false 161.777776 [(4) ] 0 21995 7445 144.444443 text
+grestore
+21900 8200 22200 8200 10 line
+gsave
+false false false false 161.777776 [(6) ] 0 21995 8245 144.444443 text
+grestore
+21900 8600 22200 8600 10 line
+gsave
+false false false false 161.777776 [(7) ] 0 21995 8645 144.444443 text
+grestore
+21900 6200 22200 6200 10 line
+gsave
+false false false false 161.777776 [(1) ] 0 21995 6245 144.444443 text
+grestore
+21900 9400 22200 9400 10 line
+gsave
+false false false false 161.777776 [(9) ] 0 21995 9445 144.444443 text
+grestore
+21900 9800 22200 9800 10 line
+gsave
+false false false false 161.777776 [(10) ] 0 21995 9845 144.444443 text
+grestore
+21900 11000 22200 11000 10 line
+gsave
+false false false false 161.777776 [(13) ] 0 21995 11045 144.444443 text
+grestore
+21900 10600 22200 10600 10 line
+gsave
+false false false false 161.777776 [(12) ] 0 21995 10645 144.444443 text
+grestore
+21900 11800 22200 11800 10 line
+gsave
+false false false false 161.777776 [(15) ] 0 21995 11845 144.444443 text
+grestore
+21900 11400 22200 11400 10 line
+gsave
+false false false false 161.777776 [(14) ] 0 21995 11445 144.444443 text
+grestore
+21900 10200 22200 10200 10 line
+gsave
+false false false false 161.777776 [(11) ] 0 21995 10245 144.444443 text
+grestore
+26800 7000 26500 7000 10 line
+gsave
+false true false false 161.777776 [(C) ] 0 26705 7045 144.444443 text
+grestore
+26800 6600 26500 6600 10 line
+gsave
+false true false false 161.777776 [(B) ] 0 26705 6645 144.444443 text
+grestore
+26800 9000 26500 9000 10 line
+gsave
+false true false false 161.777776 [(H) ] 0 26705 9045 144.444443 text
+grestore
+26800 6400 27200 6400 10 line
+26800 6800 27200 6800 10 line
+26800 6000 27200 6000 10 line
+27200 6000 27200 12000 10 line
+27200 12000 26800 12000 10 line
+26800 12000 26800 6000 10 line
+26800 7200 27200 7200 10 line
+26800 7600 27200 7600 10 line
+26800 7800 26500 7800 10 line
+gsave
+false true false false 161.777776 [(E) ] 0 26705 7845 144.444443 text
+grestore
+26800 7400 26500 7400 10 line
+gsave
+false true false false 161.777776 [(D) ] 0 26705 7445 144.444443 text
+grestore
+26800 8200 26500 8200 10 line
+gsave
+false true false false 161.777776 [(F) ] 0 26705 8245 144.444443 text
+grestore
+26800 8000 27200 8000 10 line
+26800 8600 26500 8600 10 line
+gsave
+false true false false 161.777776 [(G) ] 0 26705 8645 144.444443 text
+grestore
+26800 8400 27200 8400 10 line
+26800 8800 27200 8800 10 line
+26800 6200 26500 6200 10 line
+gsave
+false true false false 161.777776 [(A) ] 0 26705 6245 144.444443 text
+grestore
+26800 9400 26500 9400 10 line
+gsave
+false true false false 161.777776 [(I) ] 0 26705 9445 144.444443 text
+grestore
+26800 9200 27200 9200 10 line
+26800 9800 26500 9800 10 line
+gsave
+false true false false 161.777776 [(J) ] 0 26705 9845 144.444443 text
+grestore
+26800 9600 27200 9600 10 line
+26800 11000 26500 11000 10 line
+gsave
+false true false false 161.777776 [(M) ] 0 26705 11045 144.444443 text
+grestore
+26800 10600 26500 10600 10 line
+gsave
+false true false false 161.777776 [(L) ] 0 26705 10645 144.444443 text
+grestore
+26800 10400 27200 10400 10 line
+26800 10800 27200 10800 10 line
+26800 11200 27200 11200 10 line
+26800 11600 27200 11600 10 line
+26800 11800 26500 11800 10 line
+gsave
+false true false false 161.777776 [(O) ] 0 26705 11845 144.444443 text
+grestore
+26800 11400 26500 11400 10 line
+gsave
+false true false false 161.777776 [(N) ] 0 26705 11445 144.444443 text
+grestore
+26800 12000 27200 12000 10 line
+26800 10200 26500 10200 10 line
+gsave
+false true false false 161.777776 [(K) ] 0 26705 10245 144.444443 text
+grestore
+26800 10000 27200 10000 10 line
+27200 7000 27500 7000 10 line
+gsave
+false false false false 161.777776 [(C) ] 0 27295 7045 144.444443 text
+grestore
+27200 6600 27400 6600 10 line
+gsave
+false false false false 161.777776 [(B) ] 0 27295 6645 144.444443 text
+grestore
+27200 9000 27500 9000 10 line
+gsave
+false false false false 161.777776 [(H) ] 0 27295 9045 144.444443 text
+grestore
+27200 7800 27500 7800 10 line
+gsave
+false false false false 161.777776 [(E) ] 0 27295 7845 144.444443 text
+grestore
+27200 7400 27500 7400 10 line
+gsave
+false false false false 161.777776 [(D) ] 0 27295 7445 144.444443 text
+grestore
+27200 8200 27500 8200 10 line
+gsave
+false false false false 161.777776 [(F) ] 0 27295 8245 144.444443 text
+grestore
+27200 8600 27500 8600 10 line
+gsave
+false false false false 161.777776 [(G) ] 0 27295 8645 144.444443 text
+grestore
+27200 6200 27500 6200 10 line
+gsave
+false false false false 161.777776 [(A) ] 0 27295 6245 144.444443 text
+grestore
+27200 9400 27500 9400 10 line
+gsave
+false false false false 161.777776 [(I) ] 0 27295 9445 144.444443 text
+grestore
+27200 9800 27500 9800 10 line
+gsave
+false false false false 161.777776 [(J) ] 0 27295 9845 144.444443 text
+grestore
+27200 11000 27500 11000 10 line
+gsave
+false false false false 161.777776 [(M) ] 0 27295 11045 144.444443 text
+grestore
+27200 10600 27500 10600 10 line
+gsave
+false false false false 161.777776 [(L) ] 0 27295 10645 144.444443 text
+grestore
+27200 11800 27500 11800 10 line
+gsave
+false false false false 161.777776 [(O) ] 0 27295 11845 144.444443 text
+grestore
+27200 11400 27500 11400 10 line
+gsave
+false false false false 161.777776 [(N) ] 0 27295 11445 144.444443 text
+grestore
+27200 10200 27500 10200 10 line
+gsave
+false false false false 161.777776 [(K) ] 0 27295 10245 144.444443 text
+grestore
+gsave
+true false true false 141.555552 [(D6) ] 0 27000 7000 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [(A3) ] 0 27000 6600 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [(A2) ] 0 27000 6200 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [(D9) ] 0 27000 7400 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [(D10) ] 0 27000 7800 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [(D5) ] 0 27000 8200 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [(D5) ] 0 27000 8600 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [() ] 0 27000 9000 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [() ] 0 27000 9400 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [() ] 0 27000 9800 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [() ] 0 27000 11000 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [() ] 0 27000 10600 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [() ] 0 27000 10200 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [() ] 0 27000 11400 126.388885 text
+grestore
+gsave
+true false true false 141.555552 [() ] 0 27000 11800 126.388885 text
+grestore
+19400 7000 21200 7000 10 line
+22200 7000 25000 7000 10 line
+25000 6200 25000 7000 10 line
+25000 6200 26500 6200 10 line
+30000 7200 28700 7200 10 line
+28700 7200 28700 6200 10 line
+28700 6200 27500 6200 10 line
+22200 6600 24000 6600 10 line
+24000 5600 24000 10600 10 line
+19000 6600 21200 6600 10 line
+22200 6200 22500 6200 10 line
+22200 7800 24000 7800 10 line
+22200 9000 24000 9000 10 line
+22200 10600 24000 10600 10 line
+22200 7400 22500 7400 10 line
+22200 8600 22500 8600 10 line
+21200 6200 20000 6200 10 line
+20000 6200 20000 7400 10 line
+20000 7400 19000 7400 10 line
+19000 7800 21200 7800 10 line
+19400 8200 21200 8200 10 line
+21200 7400 20200 7400 10 line
+20200 7400 20200 8600 10 line
+20200 8600 19000 8600 10 line
+gsave
+24400 7300 24400 7450 10 line
+24400 8200 24400 8050 10 line
+24300 7450 24500 7450 10 line
+24500 7450 24500 8050 10 line
+24500 8050 24300 8050 10 line
+24300 8050 24300 7450 10 line
+newpath
+24400 8200
+25
+0 360 arc
+fill
+newpath
+24400 8200
+25
+0 360 arc
+fill
+grestore
+gsave
+false false false false 202.222224 [(10k) ] 0 24500 7500 180.555557 text
+grestore
+gsave
+false true false true 202.222224 [(R) ] 0 24700 8000 180.555557 text
+grestore
+22200 8200 25300 8200 10 line
+24400 7300 24000 7300 10 line
+26500 6600 25300 6600 10 line
+25300 6600 25300 8200 10 line
+29900 7600 29000 7600 10 line
+29000 6600 29000 7600 10 line
+29000 6600 27400 6600 10 line
+gsave
+21200 8600 21000 8600 10 line
+20500 8700 20400 8600 10 line
+20400 8600 20500 8500 10 line
+21000 8600 20900 8500 10 line
+20900 8700 21000 8600 10 line
+20900 8700 20500 8700 10 line
+20900 8500 20500 8500 10 line
+grestore
+gsave
+false true true false 202.222224 [(uno) ] 0 20900 8600 180.555557 text
+grestore
+gsave
+30000 8400 29800 8400 10 line
+29300 8500 29200 8400 10 line
+29200 8400 29300 8300 10 line
+29800 8400 29700 8300 10 line
+29700 8500 29800 8400 10 line
+29700 8500 29300 8500 10 line
+29700 8300 29300 8300 10 line
+grestore
+gsave
+false true true false 202.222224 [(7 pcb) ] 0 29700 8400 180.555557 text
+grestore
+22200 9400 24500 9400 10 line
+gsave
+24500 8500 24500 8650 10 line
+24500 9400 24500 9250 10 line
+24400 8650 24600 8650 10 line
+24600 8650 24600 9250 10 line
+24600 9250 24400 9250 10 line
+24400 9250 24400 8650 10 line
+newpath
+24500 9400
+25
+0 360 arc
+fill
+grestore
+gsave
+false false false false 202.222224 [(10k) ] 0 24600 8700 180.555557 text
+grestore
+gsave
+false true false true 202.222224 [(R) ] 0 24800 9200 180.555557 text
+grestore
+24500 10300 24500 9400 10 line
+24000 9700 25100 9700 10 line
+25100 9700 25100 9800 10 line
+24000 8500 24500 8500 10 line
+gsave
+30000 8200 29800 8200 10 line
+29300 8300 29200 8200 10 line
+29200 8200 29300 8100 10 line
+29800 8200 29700 8100 10 line
+29700 8300 29800 8200 10 line
+29700 8300 29300 8300 10 line
+29700 8100 29300 8100 10 line
+grestore
+gsave
+false true true false 202.222224 [(8 pcb) ] 0 29700 8200 180.555557 text
+grestore
+gsave
+21200 9000 21000 9000 10 line
+20500 9100 20400 9000 10 line
+20400 9000 20500 8900 10 line
+21000 9000 20900 8900 10 line
+20900 9100 21000 9000 10 line
+20900 9100 20500 9100 10 line
+20900 8900 20500 8900 10 line
+grestore
+gsave
+false true true false 202.222224 [(uno) ] 0 20900 9000 180.555557 text
+grestore
+gsave
+21200 9400 21000 9400 10 line
+20500 9500 20400 9400 10 line
+20400 9400 20500 9300 10 line
+21000 9400 20900 9300 10 line
+20900 9500 21000 9400 10 line
+20900 9500 20500 9500 10 line
+20900 9300 20500 9300 10 line
+grestore
+gsave
+false true true false 202.222224 [(uno) ] 0 20900 9400 180.555557 text
+grestore
+gsave
+30000 5800 29800 5800 10 line
+29300 5900 29200 5800 10 line
+29200 5800 29300 5700 10 line
+29800 5800 29700 5700 10 line
+29700 5900 29800 5800 10 line
+29700 5900 29300 5900 10 line
+29700 5700 29300 5700 10 line
+grestore
+gsave
+false true true false 202.222224 [(9 pcb) ] 0 29700 5800 180.555557 text
+grestore
+19400 10200 19700 10200 10 line
+gsave
+false false false false 161.777776 [(-) ] 0 19495 10245 144.444443 text
+grestore
+22900 11800 25300 11800 10 line
+22200 9800 22900 9800 10 line
+22900 5600 22900 11800 10 line
+24300 10900 25300 10900 10 line
+25100 10900 25100 10800 10 line
+22200 10200 24300 10200 10 line
+24300 10200 24300 10900 10 line
+19400 9800 19700 9800 10 line
+gsave
+false false false false 161.777776 [(+) ] 0 19495 9845 144.444443 text
+grestore
+19700 9800 21200 9800 10 line
+gsave
+false false false false 161.777776 [(batterie) ] 0 23200 5300 144.444443 text
+grestore
+21200 10200 19700 10200 10 line
+gsave
+false false false false 161.777776 [(ventilateur refroidissement) ] 0 17900 10700 144.444443 text
+grestore
+21200 10600 19900 10600 10 line
+19900 10600 19900 11000 10 line
+19900 11000 18900 11000 10 line
+18900 11000 18900 11700 10 line
+21200 11000 20100 11000 10 line
+20100 11000 20100 11500 10 line
+32000 5800 32600 5800 10 line
+32600 5000 32600 5800 10 line
+32600 5000 28100 5000 10 line
+28100 5000 28100 7000 10 line
+28100 7000 27500 7000 10 line
+22200 11000 22700 11000 10 line
+22700 11000 22700 12100 10 line
+26500 7000 25600 7000 10 line
+22700 12100 25600 12100 10 line
+25600 12100 25600 7000 10 line
+26500 8200 26500 8600 10 line
+19800 11900 20300 11900 10 line
+20300 11900 20300 13300 10 line
+20300 13300 28000 13300 10 line
+32000 5600 32300 5600 10 line
+32300 5300 32300 5600 10 line
+32300 5300 28400 5300 10 line
+28400 5300 28400 8200 10 line
+28400 8200 27500 8200 10 line
+27500 8600 28000 8600 10 line
+28000 8600 28000 13300 10 line
+gsave
+21200 11400 21000 11400 10 line
+20500 11500 20400 11400 10 line
+20400 11400 20500 11300 10 line
+21000 11400 20900 11300 10 line
+20900 11500 21000 11400 10 line
+20900 11500 20500 11500 10 line
+20900 11300 20500 11300 10 line
+grestore
+gsave
+false true true false 202.222224 [(uno) ] 0 20900 11400 180.555557 text
+grestore
+gsave
+21200 11800 21000 11800 10 line
+20500 11900 20400 11800 10 line
+20400 11800 20500 11700 10 line
+21000 11800 20900 11700 10 line
+20900 11900 21000 11800 10 line
+20900 11900 20500 11900 10 line
+20900 11700 20500 11700 10 line
+grestore
+gsave
+false true true false 202.222224 [(uno) ] 0 20900 11800 180.555557 text
+grestore
+gsave
+32000 6600 32200 6600 10 line
+32700 6500 32800 6600 10 line
+32800 6600 32700 6700 10 line
+32200 6600 32300 6700 10 line
+32300 6500 32200 6600 10 line
+32300 6500 32700 6500 10 line
+32300 6700 32700 6700 10 line
+grestore
+gsave
+false false true false 202.222224 [(15 pcb) ] 0 32300 6600 180.555557 text
+grestore
+gsave
+32000 6400 32200 6400 10 line
+32700 6300 32800 6400 10 line
+32800 6400 32700 6500 10 line
+32200 6400 32300 6500 10 line
+32300 6300 32200 6400 10 line
+32300 6300 32700 6300 10 line
+32300 6500 32700 6500 10 line
+grestore
+gsave
+false false true false 202.222224 [(14 pcb) ] 0 32300 6400 180.555557 text
+grestore
+gsave
+27500 7800 27700 7800 10 line
+28200 7700 28300 7800 10 line
+28300 7800 28200 7900 10 line
+27700 7800 27800 7900 10 line
+27800 7700 27700 7800 10 line
+27800 7700 28200 7700 10 line
+27800 7900 28200 7900 10 line
+grestore
+gsave
+false false true false 202.222224 [(P1.6 D) ] 0 27800 7800 180.555557 text
+grestore
+gsave
+27500 7400 27700 7400 10 line
+28200 7300 28300 7400 10 line
+28300 7400 28200 7500 10 line
+27700 7400 27800 7500 10 line
+27800 7300 27700 7400 10 line
+27800 7300 28200 7300 10 line
+27800 7500 28200 7500 10 line
+grestore
+gsave
+false false true false 202.222224 [(P1.5 P) ] 0 27800 7400 180.555557 text
+grestore
+26500 7400 25900 7400 10 line
+25900 7400 25900 12400 10 line
+25900 12400 22500 12400 10 line
+22500 12400 22500 11400 10 line
+22200 11400 22500 11400 10 line
+22200 11800 22300 11800 10 line
+22300 11800 22300 12700 10 line
+22300 12700 26200 12700 10 line
+26200 12700 26200 7800 10 line
+26200 7800 26500 7800 10 line
+gsave
+23200 10800 23200 10950 10 line
+23200 11700 23200 11550 10 line
+23100 10950 23300 10950 10 line
+23300 10950 23300 11550 10 line
+23300 11550 23100 11550 10 line
+23100 11550 23100 10950 10 line
+newpath
+23200 10800
+25
+0 360 arc
+fill
+grestore
+gsave
+false false false false 202.222224 [(10k) ] 0 23400 11000 180.555557 text
+grestore
+gsave
+false true false true 202.222224 [(R) ] 0 23500 11400 180.555557 text
+grestore
+gsave
+23900 10800 23900 10950 10 line
+23900 11700 23900 11550 10 line
+23800 10950 24000 10950 10 line
+24000 10950 24000 11550 10 line
+24000 11550 23800 11550 10 line
+23800 11550 23800 10950 10 line
+grestore
+gsave
+false true false true 202.222224 [(R) ] 0 24200 11400 180.555557 text
+grestore
+23900 12700 23900 11700 10 line
+23200 11700 23200 12400 10 line
+gsave
+false false false false 202.222224 [(Pwm 20khz) (   Timer 1) ] 0 33300 6300 180.555557 text
+grestore
+18400 10000 18100 10000 10 line
+gsave
+false true false false 161.777776 [(gnd) ] 0 18305 10045 144.444443 text
+grestore
+gsave
+18100 9800 18100 10000 10 line
+18200 9800 18000 9800 10 line
+18145 9750 18055 9750 10 line
+18120 9710 18080 9710 10 line
+grestore
+23900 6100 24000 6100 10 line
+24000 6100 24400 6100 10 line
+gsave
+22900 5600 22900 5400 10 line
+23050 5400 22750 5400 10 line
+gsave
+false true false true 161.777776 [(+12V) ] 0 23025 5350 144.444443 text
+grestore
+grestore
+gsave
+false false false false 202.222224 [(     de) (l'arduino) ] 0 22700 8500 180.555557 text
+grestore
+gsave
+22500 8600 22500 8800 10 line
+22350 8800 22650 8800 10 line
+gsave
+false false false false 161.777776 [(+5V) ] 0 22375 8850 144.444443 text
+grestore
+newpath
+22500 8600
+25
+0 360 arc
+fill
+grestore
+22500 6200 22500 8600 10 line
+gsave
+28700 12400 28700 12600 10 line
+28550 12600 28850 12600 10 line
+gsave
+false false false false 161.777776 [(+12V) ] 0 28575 12650 144.444443 text
+grestore
+grestore
+gsave
+false false false false 161.777776 [(batterie) ] 0 28500 12900 144.444443 text
+grestore
+28700 12400 28700 12100 10 line
+28700 11200 28700 7800 10 line
+28700 7800 30000 7800 10 line
+gsave
+21500 5000 21350 5000 10 line
+20600 5000 20750 5000 10 line
+20750 4900 21350 4900 10 line
+21350 4900 21350 5100 10 line
+21350 5100 20750 5100 10 line
+20750 5100 20750 4900 10 line
+grestore
+gsave
+false false false false 202.222224 [(R 100k) ] 0 20800 5200 180.555557 text
+grestore
+18600 3600 19400 3600 10 line
+19400 3600 19400 4000 10 line
+19400 4000 18600 4000 10 line
+18600 4000 18600 3600 10 line
+18800 3600 19200 3600 10 line
+19200 3600 19200 4000 10 line
+19200 4000 18800 4000 10 line
+18800 4000 18800 3600 10 line
+19400 3800 19700 3800 10 line
+gsave
+false false false false 161.777776 [(2) ] 0 19495 3845 144.444443 text
+grestore
+19300 3600 19300 3300 10 line
+gsave
+false false false true 161.777776 [(1) ] 0 19395 3550 144.444443 text
+grestore
+gsave
+20450 4200 20600 4200 10 line
+20200 4200 20301 4148 10 line
+20201 4201 20302 4253 10 line
+20200 4300 20000 4200 10 line
+20000 4200 20200 4100 10 line
+20200 4100 20000 4000 10 line
+20000 4000 20200 3900 10 line
+20200 4300 20000 4400 10 line
+20000 4400 20100 4450 10 line
+20100 4600 20100 4450 10 line
+20100 3700 20100 3852 10 line
+20200 3901 20100 3850 10 line
+20200 4200 20450 4200 10 line
+newpath
+20600 4200
+25
+0 360 arc
+fill
+grestore
+gsave
+false true false false 202.222224 [(P 10k) ] 0 20000 4500 180.555557 text
+grestore
+20100 3700 20100 3300 10 line
+19700 3800 20600 3800 10 line
+19300 3300 21100 3300 10 line
+20600 5000 20600 4200 10 line
+21500 5000 21600 5000 10 line
+21600 5000 21600 4000 10 line
+gsave
+21600 4000 21800 4000 10 line
+22300 3900 22400 4000 10 line
+22400 4000 22300 4100 10 line
+21800 4000 21900 4100 10 line
+21900 3900 21800 4000 10 line
+21900 3900 22300 3900 10 line
+21900 4100 22300 4100 10 line
+newpath
+21600 4000
+25
+0 360 arc
+fill
+grestore
+gsave
+false false true false 202.222224 [(sortie) ] 0 21900 4000 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(hall sensor) ] 0 18300 3300 180.555557 text
+grestore
+gsave
+20100 4600 20100 4800 10 line
+19950 4800 20250 4800 10 line
+gsave
+false false false false 161.777776 [(+5V) ] 0 19975 4850 144.444443 text
+grestore
+grestore
+gsave
+21100 4400 21100 4600 10 line
+20950 4600 21250 4600 10 line
+gsave
+false false false false 161.777776 [(+5V) ] 0 20975 4650 144.444443 text
+grestore
+grestore
+21100 3300 21100 3600 10 line
+18000 2900 22500 2900 10 line
+22500 2900 22500 5500 10 line
+22500 5500 18000 5500 10 line
+18000 5500 18000 2900 10 line
+gsave
+false false false false 202.222224 [(S49E 937) ] 0 18400 4900 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(Throttle sensor) ] 0 18200 5200 180.555557 text
+grestore
+23200 10800 23200 7400 10 line
+23200 7400 22500 7400 10 line
+23200 10800 23900 10800 10 line
+gsave
+false false false false 202.222224 [(Far away from the sensor : 0,7v) (The aproximitly of the sensor max 4,6v) (Throttle position sensing with linear hall sensors) ] 0 22900 3100 180.555557 text
+grestore
+gsave
+19200 11700 18900 11700 10 line
+gsave
+false false false false 202.222224 [(1) ] 0 19050 11750 180.555557 text
+grestore
+19500 11900 19800 11900 10 line
+gsave
+false false false false 202.222224 [(2) ] 0 19650 11950 180.555557 text
+grestore
+19500 11500 19800 11500 10 line
+gsave
+false false false false 202.222224 [(3) ] 0 19650 11550 180.555557 text
+grestore
+19200 11700 19500 11700 10 line
+grestore
+gsave
+false false false false 202.222224 [(S) ] 0 19300 12100 180.555557 text
+grestore
+19800 11500 20100 11500 10 line
+gsave
+false false false false 202.222224 [(Ar / Stop / Av) ] 0 18000 12000 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(pull up interne) ] 0 31900 5400 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(4,3v = 879) (0,87v = 178) ] 0 17900 6500 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(4,22v = 863) (0,88v = 180) ] 0 18000 8700 180.555557 text
+grestore
+21100 5800 27600 5800 10 line
+27600 5800 27600 13000 10 line
+27600 13000 21100 13000 10 line
+21100 13000 21100 5800 10 line
+gsave
+false false false false 202.222224 [(PCB adaptateur) ] 0 21200 12800 180.555557 text
+grestore
+31200 10600 34600 10600 10 line
+34600 10600 34600 13500 10 line
+34600 13500 31200 13500 10 line
+31200 13500 31200 10600 10 line
+31600 10600 34200 10600 10 line
+34200 10600 34200 10900 10 line
+34200 10900 31600 10900 10 line
+31600 10900 31600 10600 10 line
+31500 13000 34200 13000 10 line
+34200 13000 34200 13300 10 line
+34200 13300 31500 13300 10 line
+31500 13300 31500 13000 10 line
+34000 11400 34400 11400 10 line
+34400 11400 34400 12000 10 line
+34400 12000 34000 12000 10 line
+34000 12000 34000 11400 10 line
+34000 11700 34400 11700 10 line
+33100 12500 33700 12500 10 line
+33700 12500 33700 12600 10 line
+33700 12600 33100 12600 10 line
+33100 12600 33100 12500 10 line
+33100 12300 33700 12300 10 line
+33700 12300 33700 12500 10 line
+33700 12500 33100 12500 10 line
+33100 12500 33100 12300 10 line
+gsave
+false false false false 202.222224 [(A) ] 0 31600 13100 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(O) ] 0 34000 13100 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(1) ] 0 31700 10700 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(15) ] 0 33900 10700 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(+) ] 0 34200 11800 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(-) ] 0 34200 11500 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(PCB adaptateur) ] 0 32000 11700 180.555557 text
+grestore
+gsave
+false false false false 202.222224 [(IRF640) ] 0 33100 12300 180.555557 text
+grestore
+gsave
+false false false false 161.777776 [(batterie) ] 0 33900 12100 144.444443 text
+grestore
+newpath
+24600 10900
+25
+0 360 arc
+fill
+newpath
+24600 10900
+25
+0 360 arc
+fill
+newpath
+24600 11800
+25
+0 360 arc
+fill
+newpath
+24600 11800
+25
+0 360 arc
+fill
+newpath
+22900 6100
+25
+0 360 arc
+fill
+newpath
+22900 6100
+25
+0 360 arc
+fill
+60 60 29970 9170 fbox
+60 60 29970 8970 fbox
+60 60 29970 8770 fbox
+60 60 29970 8570 fbox
+60 60 29970 7970 fbox
+60 60 29970 7570 fbox
+60 60 29970 7370 fbox
+60 60 29970 6970 fbox
+60 60 29970 6770 fbox
+60 60 29970 6570 fbox
+60 60 29970 6370 fbox
+60 60 29970 6170 fbox
+60 60 29970 5970 fbox
+60 60 29970 5570 fbox
+60 60 31970 9170 fbox
+60 60 31970 8970 fbox
+60 60 31970 8770 fbox
+60 60 31970 8570 fbox
+60 60 31970 8370 fbox
+60 60 31970 8170 fbox
+60 60 31970 7970 fbox
+60 60 31970 7770 fbox
+60 60 31970 7570 fbox
+60 60 31970 7370 fbox
+60 60 31970 7170 fbox
+60 60 31970 6970 fbox
+60 60 31970 6770 fbox
+60 60 31970 6170 fbox
+60 60 31970 5970 fbox
+newpath
+20600 4200
+25
+0 360 arc
+fill
+newpath
+21600 4000
+25
+0 360 arc
+fill
+newpath
+24400 7000
+25
+0 360 arc
+fill
+newpath
+24400 7000
+25
+0 360 arc
+fill
+newpath
+20100 3300
+25
+0 360 arc
+fill
+newpath
+20100 3300
+25
+0 360 arc
+fill
+60 60 26470 8970 fbox
+60 60 26470 9370 fbox
+60 60 26470 9770 fbox
+60 60 26470 10970 fbox
+60 60 26470 10570 fbox
+60 60 26470 11770 fbox
+60 60 26470 11370 fbox
+60 60 26470 10170 fbox
+60 60 27470 8970 fbox
+60 60 27470 9370 fbox
+60 60 27470 9770 fbox
+60 60 27470 10970 fbox
+60 60 27470 10570 fbox
+60 60 27470 11770 fbox
+60 60 27470 11370 fbox
+60 60 27470 10170 fbox
+newpath
+24400 7000
+25
+0 360 arc
+fill
+newpath
+24000 6600
+25
+0 360 arc
+fill
+newpath
+24000 6600
+25
+0 360 arc
+fill
+newpath
+24000 6600
+25
+0 360 arc
+fill
+newpath
+24000 7800
+25
+0 360 arc
+fill
+newpath
+24000 9000
+25
+0 360 arc
+fill
+newpath
+24000 7300
+25
+0 360 arc
+fill
+newpath
+24000 9700
+25
+0 360 arc
+fill
+newpath
+24000 8500
+25
+0 360 arc
+fill
+newpath
+24000 6100
+25
+0 360 arc
+fill
+newpath
+24000 6100
+25
+0 360 arc
+fill
+newpath
+24000 7800
+25
+0 360 arc
+fill
+newpath
+24000 7800
+25
+0 360 arc
+fill
+newpath
+24000 9000
+25
+0 360 arc
+fill
+newpath
+24000 9000
+25
+0 360 arc
+fill
+newpath
+22500 7400
+25
+0 360 arc
+fill
+newpath
+22500 7400
+25
+0 360 arc
+fill
+newpath
+22500 8600
+25
+0 360 arc
+fill
+newpath
+24400 8200
+25
+0 360 arc
+fill
+newpath
+24400 8200
+25
+0 360 arc
+fill
+newpath
+24400 8200
+25
+0 360 arc
+fill
+newpath
+24000 7300
+25
+0 360 arc
+fill
+newpath
+24000 7300
+25
+0 360 arc
+fill
+60 60 29870 7570 fbox
+newpath
+24500 9400
+25
+0 360 arc
+fill
+newpath
+24500 9400
+25
+0 360 arc
+fill
+newpath
+24500 9400
+25
+0 360 arc
+fill
+newpath
+24000 9700
+25
+0 360 arc
+fill
+newpath
+24000 9700
+25
+0 360 arc
+fill
+newpath
+24000 8500
+25
+0 360 arc
+fill
+newpath
+24000 8500
+25
+0 360 arc
+fill
+newpath
+24600 11800
+25
+0 360 arc
+fill
+newpath
+22900 9800
+25
+0 360 arc
+fill
+newpath
+22900 9800
+25
+0 360 arc
+fill
+newpath
+22900 6100
+25
+0 360 arc
+fill
+newpath
+22900 9800
+25
+0 360 arc
+fill
+newpath
+24600 10900
+25
+0 360 arc
+fill
+newpath
+25100 10900
+25
+0 360 arc
+fill
+newpath
+25100 10900
+25
+0 360 arc
+fill
+newpath
+25100 10900
+25
+0 360 arc
+fill
+newpath
+23200 12400
+25
+0 360 arc
+fill
+newpath
+23900 12700
+25
+0 360 arc
+fill
+newpath
+23200 10800
+25
+0 360 arc
+fill
+newpath
+23900 12700
+25
+0 360 arc
+fill
+newpath
+23900 12700
+25
+0 360 arc
+fill
+newpath
+23200 12400
+25
+0 360 arc
+fill
+newpath
+23200 12400
+25
+0 360 arc
+fill
+newpath
+24000 6100
+25
+0 360 arc
+fill
+newpath
+24000 6100
+25
+0 360 arc
+fill
+newpath
+24000 6100
+25
+0 360 arc
+fill
+newpath
+24000 6100
+25
+0 360 arc
+fill
+newpath
+22500 8600
+25
+0 360 arc
+fill
+newpath
+22500 8600
+25
+0 360 arc
+fill
+newpath
+22500 7400
+25
+0 360 arc
+fill
+newpath
+22500 7400
+25
+0 360 arc
+fill
+newpath
+20600 4200
+25
+0 360 arc
+fill
+newpath
+20100 3300
+25
+0 360 arc
+fill
+newpath
+20100 3300
+25
+0 360 arc
+fill
+newpath
+20100 3300
+25
+0 360 arc
+fill
+newpath
+20100 3300
+25
+0 360 arc
+fill
+newpath
+20600 4200
+25
+0 360 arc
+fill
+newpath
+21600 4000
+25
+0 360 arc
+fill
+newpath
+21600 4000
+25
+0 360 arc
+fill
+newpath
+23200 10800
+25
+0 360 arc
+fill
+newpath
+22500 7400
+25
+0 360 arc
+fill
+newpath
+22500 7400
+25
+0 360 arc
+fill
+newpath
+23200 10800
+25
+0 360 arc
+fill
+showpage
+%%End
