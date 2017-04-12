@@ -33,7 +33,8 @@ void setup ()
   Serial.begin(9600);
   
   motor.config(20);
-  motor.setBrakeStop(2000); // brake 2s
+ // motor.setBrakeStop(2000); // brake 2s
+  motor.setFreeStop(2000); // stop 2s et état 0 pour IBT_2
   fan.setVentilateurSpeed(0); // broche 3
 }
 
@@ -50,7 +51,8 @@ void loop ()
     avant = throttle.directionAvant(); // lecture de la direction avant
     if (avant && throttle.directionArriere()) { // avant et arriere à l'arret donc frein
       speedSav = 400;
-      motor.setBrakeStop(2000); // brakes 2s
+     // motor.setBrakeStop(2000); // brakes 2s
+      motor.setFreeStop(2000); // stop 2s et état 0  pour IBT_2
       fan.setVentilateurSpeed(0); // broche 3
     } else {
       puissance = throttle.poigneePuissance(); // lecture de la puissance
@@ -73,7 +75,8 @@ void loop ()
       if (speed > 400)  speed = 400; // Max PWM dutycycle
       if (speed == 400 )
       {
-        motor.setBrakeStop(100); // brakes 100ms
+       // motor.setBrakeStop(100); // brakes 100ms
+       motor.setFreeStop(100); // stop 100ms
         fan.setVentilateurSpeed(0); // broche 3
 
       } else {
