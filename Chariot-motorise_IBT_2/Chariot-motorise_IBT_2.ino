@@ -43,14 +43,14 @@ void loop ()
   int speed(0); // speed
   int puissance(0);// puissance
   bool avant (true);
-  int speedSav(400);// sauvegarde de la vitesse
+  int speedSav(0);// sauvegarde de la vitesse
   int const acceleration(3); // acceleration progressive de 0 à 20 environ
 
   do
   {
     avant = throttle.directionAvant(); // lecture de la direction avant
     if (avant && throttle.directionArriere()) { // avant et arriere à l'arret donc frein
-      speedSav = 400;
+      speedSav = 0;
      // motor.setBrakeStop(2000); // brakes 2s
       motor.setFreeStop(2000); // stop 2s et état 0  pour IBT_2
       fan.setVentilateurSpeed(0); // broche 3
@@ -61,19 +61,19 @@ void loop ()
            adaptation de la puissance en fonction de la marche avant ou arriere
            puissance minimum et puissance max pour la marche arriere
         *************************************************************************/
-        // reglage de la puissace 0,88v / 4,22v vers 400 puissance min / 0 puissance max
+        // reglage de la puissace 0,88v / 4,22v vers 0 puissance min / 400 puissance max
         puissance = map(puissance, 180, 860, 300, 0); // 300 puissance minimum pour le bon fonctionnement du moteur
         if (puissance < 0) puissance = 0;
       } else {
         // reglage de la puissace 0,88v / 4,22v vers 400 puissance min / 0 puissance max
-        puissance = map(puissance, 180, 860, 300, 200); // 300 puissance minimum et 200 pour la puissance maxi en marche arriere
+        puissance = map(puissance, 180, 860, 300, 0); // 300 puissance minimum et 200 pour la puissance maxi en marche arriere
         if (puissance < 0) puissance = 0;
       }
       // conversion tension 0,87v / 4,37v vers 0 puissance max / 400 puissance min
-      speed = map(throttle.poigneeThrottle(), 178, 860, 400, puissance);
+      speed = map(throttle.poigneeThrottle(), 178, 860, puissance, 400);
       if (speed < 0)  speed = 0; // Min PWM
       if (speed > 400)  speed = 400; // Max PWM dutycycle
-      if (speed == 400 )
+      if (speed == 0 )
       {
        // motor.setBrakeStop(100); // brakes 100ms
        motor.setFreeStop(100); // stop 100ms
